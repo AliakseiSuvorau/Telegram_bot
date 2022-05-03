@@ -1,6 +1,6 @@
 **To start the bot**, type in your command line:
 ```bash
-	pip install requirements.txt
+	pip install -r requirements.txt
 	python3 main.py
 ```
 The bot is on the @StackOverflowParcingBot
