@@ -1,8 +1,73 @@
 from bs4 import BeautifulSoup  # for scrapping the information
 import Globals as g
-from random import random
 import requests  # for sending requests and getting html
-from time import sleep
+
+
+def to_url(request):
+    """
+    This function translates the string with the request to the url code
+    Arguments:
+        request: the string with request
+    Returns:
+        The string with url
+    """
+    url = ""
+    for i in range(len(request)):
+        if request[i] == "!":
+            url += "%21"
+        elif request[i] == "\"":
+            url += "%22"
+        elif request[i] == "#":
+            url += "%23"
+        elif request[i] == "$":
+            url += "%24"
+        elif request[i] == "%":
+            url += "%25"
+        elif request[i] == "&":
+            url += "%26"
+        elif request[i] == "'":
+            url += "%27"
+        elif request[i] == "(":
+            url += "%28"
+        elif request[i] == ")":
+            url += "%29"
+        elif request[i] == "+":
+            url += "%2B"
+        elif request[i] == ",":
+            url += "%2C"
+        elif request[i] == "/":
+            url += "%2F"
+        elif request[i] == ":":
+            url += "%3A"
+        elif request[i] == ";":
+            url += "%3B"
+        elif request[i] == "=":
+            url += "%3D"
+        elif request[i] == "%":
+            url += "%3F"
+        elif request[i] == "@":
+            url += "%40"
+        elif request[i] == "[":
+            url += "%5B"
+        elif request[i] == "\\":  # Check
+            url += "%5C"
+        elif request[i] == "]":
+            url += "%5D"
+        elif request[i] == "^":
+            url += "%5E"
+        elif request[i] == "`":
+            url += "%60"
+        elif request[i] == "{":
+            url += "%7B"
+        elif request[i] == "|":
+            url += "%7C"
+        elif request[i] == "}":
+            url += "%7D"
+        elif request[i] == " ":
+            url += "+"
+        else:
+            url += request[i]
+    return url
 
 
 def make_a_request_for_questions(base_url, score, href):
@@ -15,23 +80,19 @@ def make_a_request_for_questions(base_url, score, href):
     Returns:
         Nothing
     """
-    cur_page = 1
-    while cur_page <= g.pages:
-        questions = []
-        url = base_url + str(cur_page)
-        response = requests.get(url)  # getting request from the site with the html
-        html = BeautifulSoup(response.text, 'html.parser')
+    questions = []
+    url = base_url + g.user_request
+    if g.tagged:
+        url += "?tab=Votes"
+    response = requests.get(url)  # getting request from the site with the html
+    html = BeautifulSoup(response.text, 'html.parser')
+    if g.tagged:
         question_data = html.find_all('div', class_="s-post-summary js-post-summary")
-        if question_data:
-            questions.extend(question_data)
-            some_ms = random()
-            sleep(some_ms)
-        else:
-            break
-        cur_page += 1
-        look_for_answers(questions, score, href)
-        if len(score) >= 5:
-            break
+    else:
+        question_data = html.find_all('div', class_="question-summary search-result")
+    if question_data:
+        questions.extend(question_data)
+    look_for_answers(questions, score, href)
 
 
 def look_for_answers(questions, score, href):
@@ -46,12 +107,14 @@ def look_for_answers(questions, score, href):
     """
     for item in questions:
         if len(score) < g.num_of_results:
-            # If the title suits the request
-            if item.find('a', {"class": "s-link"}).text.lower().find(g.user_request.lower()) != -1:
-                # If there is a good answer
-                if not (item.find('div', {"class": "s-post-summary--stats-item has-answers has-accepted-answer"}) is None):
-                    score.append(int(item.find('span', {"class": "s-post-summary--stats-item-number"}).text))
-                    href.append("https://stackoverflow.com" + item.a.get('href'))
+            if g.tagged:
+                score.append(int(item.find('span', {"class": "s-post-summary--stats-item-number"}).text))
+            else:
+                score.append(int(item.find('strong').text))
+            if g.lan == "English":
+                href.append("https://stackoverflow.com" + item.a.get('href'))
+            else:
+                href.append("https://ru.stackoverflow.com" + item.a.get('href'))
         else:
             break
 
@@ -73,9 +136,9 @@ def make_an_output(score, href):
             answer_text += "Most relevant hits found on Russian Stack Overflow:\n"
     else:
         if g.lan == "English":
-            return f"No answers found on English Stack Overflow on first {g.pages} pages\n"
+            return "No answers found on English Stack Overflow. The site may have asked you to pass captcha.\n"
         else:
-            return f"No answers found on Russian Stack Overflow on first {g.pages} pages\n"
+            return "No answers found on Russian Stack Overflow.\n"
     i = 0
     while i < min(g.num_of_results, len(score) + i):
         answer_text = answer_text + "Votes: " + str(score[score.index(max(score), 0)]) + "\n" + str(href[score.index(max(score), 0)]) + "\n"
@@ -96,16 +159,25 @@ def work_with_so():
     """
     if g.user_request == "":
         return "Please, enter the request."
+    if g.user_request.find(" ") == -1:
+        g.tagged = 1
+        url_en = "https://stackoverflow.com/questions/tagged/"
+        url_ru = "https://ru.stackoverflow.com/questions/tagged/"
+    else:
+        url_en = "https://stackoverflow.com/search?q="
+        url_ru = "https://ru.stackoverflow.com/search?q="
+    g.user_request = to_url(g.user_request)
     # Looking for answers on Russian Stack Overflow
     g.lan = "English"
     score = []
     href = []
-    make_a_request_for_questions("https://stackoverflow.com/questions?tab=votes&page=", score, href)
+    make_a_request_for_questions(url_en, score, href)
     answer_text_en = make_an_output(score, href)
     # Looking for answers on Russian Stack Overflow
     g.lan = "Russian"
     score = []
     href = []
-    make_a_request_for_questions("https://ru.stackoverflow.com/questions?tab=votes&page=", score, href)
+    make_a_request_for_questions(url_ru, score, href)
     answer_text_ru = make_an_output(score, href)
+    g.tagged = 0
     return answer_text_en + "\n" + answer_text_ru

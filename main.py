@@ -9,7 +9,9 @@ updater = t.Updater("5379448024:AAEfgCOeamwrNIkzuch4knAn33qMpzSyU8o", use_contex
 
 # What to answer on "/help"
 def help(update: Update, context: t.CallbackContext):
-    update.message.reply_text("Type /find [body of the request]")
+    update.message.reply_text("Type /find [body of the request]\n"
+                              "Please, if you want to use '\\', double it in your request (put '\\\\' instead of '\\'"
+                              "You may need sometimes to go to English Stack Overflow to pass captcha.")
 
 
 # What to answer on a message without "/"
@@ -26,9 +28,12 @@ def unknown(update: Update, context: t.CallbackContext):
 
 # Create an answer on a request
 def find_ans(update: Update, context: t.CallbackContext):
-    g.user_request = " ".join(context.args)
-    answer_text = f.work_with_so()
-    update.message.reply_text(answer_text)
+    try:
+        g.user_request = " ".join(context.args)
+        answer_text = f.work_with_so()
+        update.message.reply_text(answer_text)
+    except t.vendor.ptb_urllib3.urllib3.exceptions.ProtocolError:  # The error occurs due to '\' symbol
+        pass
 
 
 updater.dispatcher.add_handler(t.CommandHandler('help', help))
@@ -39,3 +44,4 @@ updater.dispatcher.add_handler(t.MessageHandler(t.Filters.text, unknown_text))
 
 # Start telegram bot
 updater.start_polling()
+
