@@ -2,6 +2,7 @@ import functions as f
 import Globals as g
 from telegram.update import Update
 import telegram.ext as t
+import telegram
 
 
 updater = t.Updater("5379448024:AAEfgCOeamwrNIkzuch4knAn33qMpzSyU8o", use_context=True)
@@ -32,7 +33,7 @@ def find_ans(update: Update, context: t.CallbackContext):
         g.user_request = " ".join(context.args)
         answer_text = f.work_with_so()
         update.message.reply_text(answer_text)
-    except t.vendor.ptb_urllib3.urllib3.exceptions.ProtocolError:  # The error occurs due to '\' symbol
+    except Exception:  # The error occurs due to '\' symbol
         pass
 
 

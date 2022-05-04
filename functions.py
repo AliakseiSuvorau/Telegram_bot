@@ -49,7 +49,7 @@ def to_url(request):
             url += "%40"
         elif request[i] == "[":
             url += "%5B"
-        elif request[i] == "\\":  # Check
+        elif request[i] == "\\":
             url += "%5C"
         elif request[i] == "]":
             url += "%5D"
@@ -148,18 +148,43 @@ def make_an_output(score, href):
     return answer_text
 
 
+def tag_check():
+    """
+    This function checks if the request suits most popular tags
+    Arguments:
+        Nothing.
+    Returns:
+        True if the request suits one of the tags and False if it doesn't
+    """
+    if g.user_request == "javascript" or g.user_request == "python" or g.user_request == "php":
+        return True
+    elif g.user_request == "java" or g.user_request == "html" or g.user_request == "android":
+        return True
+    elif g.user_request == "c++" or g.user_request == "css" or g.user_request == "jquery":
+        return True
+    elif g.user_request == "python-3.x" or g.user_request == "mysql" or g.user_request == "sql":
+        return True
+    elif g.user_request == "c" or g.user_request == "linux" or g.user_request == "json":
+        return True
+    elif g.user_request == "windows" or g.user_request == "ubuntu" or g.user_request == "delphi":
+        return True
+    elif g.user_request == "node.js" or g.user_request == "arrays" or g.user_request == "excel":
+        return True
+    return False
+
+
 def work_with_so():
     """
     This function works with Stack Overflow. First, it looks for answers on the user's request
     on the English version of Stack Overflow, than - on the Russian one
     Arguments:
-        no arguments
+        No arguments.
     Returns:
         A string with an answer to be sent to the user by the bot
     """
     if g.user_request == "":
         return "Please, enter the request."
-    if g.user_request.find(" ") == -1:
+    if tag_check():
         g.tagged = 1
         url_en = "https://stackoverflow.com/questions/tagged/"
         url_ru = "https://ru.stackoverflow.com/questions/tagged/"
