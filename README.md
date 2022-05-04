@@ -7,7 +7,7 @@ The bot is on the @StackOverflowParcingBot
 
 Type /help to get the list of commands
 
-Type /find [request] to get the answers on the first 50 pages
-of the English and Russian versions of Stack Overflow.
+Type /find [request] to get the answers on 
+the English and Russian versions of Stack Overflow.
 
-The answeres are given in the oreder from most voted to less votes.
+The answeres are given in the oreder from most voted to less voted.
